@@ -1,20 +1,7 @@
-from time import sleep
+import time
 
 
-def start():
-    load()
-    name = input("\tEnter your name:\n\t")
-    if not name:
-        name = "Sawyer Thomson"
-    balance = input("\tEnter your starting Balance:\n\t€")
-
-    if not balance:
-        balance = 204.90
-    transactions = []
-    menu(name, balance, transactions)
-
-
-def load():
+def display():
     print("""
 
 ░█████╗░████████╗███╗░░░███╗
@@ -25,64 +12,139 @@ def load():
 ╚═╝░░╚═╝░░░╚═╝░░░╚═╝░░░░░╚═╝
 """)
 
+def start():
+    display()
+    accpin = "a12#"
+    name = input("\tEnter your name:\n\t")
+    if not name:
+        name = "Guest"
+    accbal = input("\tEnter your starting Balance:\n\t€")
 
-def loading():
-    for x in range(10):
-        print("\n\n")
-        print("\t*" * x)
-        sleep(.1)
-        print('\x1bc')
+    if not accbal or accbal == "" or accbal.isalpha():
+        accbal = float(2000)
+
+    accbal = float(accbal)
 
 
-def menu(name, balance, transactions):
-    loading()
-    print(f"Greetings, {name}.", "your balance is €%.2f\n" % (float(balance)))
-    print('Choose an command from the menu:', '1) Withdraw', '2) Deposit', '3) Calculate interest',
-          '4) Transaction history', '5) Exit', sep="\n\t")
-    option = input(">")
+    transactions = []
+    menu(name, accbal, transactions, accpin)
+
+def menu(name,balance, transactions, pin):
+    print(f"Greetings, {name}")
+
+    next = input("What would you like to do next? :\na) Print the account balance\nb) Withdraw some money from the account\nc) Deposit some money on the account\nd) Modify the account pin code\ne) View transactions\nf) Quit\n>>> ")
     try:
-        option = int(option)
-        if option == 1:
-            balance = withdraw(balance, transactions)
-        elif option == 2:
-            balance = deposit(balance, transactions)
-        elif option == 3:
-            interest(balance)
-        elif option == 4:
-            transaction(balance, transactions)
-        elif option == 5:
-            load()
+
+        if next == "a":
+            print("Your balance is €%.2f\n" % (float(balance)))
+        elif next == "b":
+            balance = withdraw(balance, pin, transactions)
+        elif next == "c":
+            balance = deposit(balance, pin, transactions)
+        elif next == "d":
+            pin = modifypin(pin)
+        elif next == "e":
+            transaction(balance,transactions)
+        elif next == "f":
+            print("Have a nice day")
+            delay()
             exit()
-        else:
-            print("invalid option")
     except ValueError:
-        print("Enter a number")
-    menu(name, balance, transactions)
+        print("Enter a letter")
+    menu(name, balance, transactions,pin)
 
+def delay():
+    print(".")
+    time.sleep(1)
+    print("..")
+    time.sleep(1)
+    print("...")
+    time.sleep(1)
+    print("...")
+    time.sleep(1)
+    print("....")
+    time.sleep(1)
 
-def withdraw(balance, transactions):
-    withdraw = float(input("\nHow much would you like to withdraw\n\t€"))
-    if withdraw > balance:
-        print("insufficient funds")
+def withdraw(balance, pin, transactions):
+    pin_input = input("Please enter your pin : ")
+
+    if pin_input == pin:
+        withdraw_amount = float(input("How much would you like to withdraw from your account? :"))
+        if withdraw_amount > balance:
+            print(f"Insufficient funds to complete this request, your balance is € {balance}")
+            return balance
+        else:
+            print("Please wait while your cash is being printed\n")
+            balance -= withdraw_amount
+            withdraw_amount = "-€" + str(withdraw_amount)
+            transactions.append(withdraw_amount)
+
+        delay()
+        print("Please remove your cash and take your card")
+        print(f">>>Your balance is now € {balance}")
+        time.sleep(5)
+
+    return balance
+
+def deposit(balance, pin, transactions):
+    pin_input = input("Please enter your pin : ")
+
+    if pin_input == pin:
+        dep = float(input("How much would you like to deposit to your account? :"))
+        balance += dep
+        delay()
+        print(f"Deposit successful\n>>>Your balance is now € {balance}")
+        time.sleep(5)
+        dep = "+€" + str(dep)
+        transactions.append(dep)
+        return balance
+
+def modifypin(pin):
+
+    pin_input = input("Please enter your pin : ")
+
+    if pin_input == pin:
+        x = input("Enter a new pin\n>>> ")
+        if validpin(pin) == True:
+            pin = x
+            delay()
+
+            print(f"Your new pin is {pin}")
+
+            return pin
+
     else:
-        balance -= withdraw
-        withdraw = "-" + str(withdraw)
-        transactions.append(withdraw)
-    return balance
+        print("Password unchanged")
+        return pin
+
+def validpin(pin):
 
 
-def deposit(balance, transactions):
-    dep = int(input("\nHow much would you like to deposit\n\t€"))
-    balance += dep
-    dep = "+" + str(dep)
-    transactions.append(dep)
-    return balance
+    digit_counter = 0
+    alpha_counter = 0
+    symbol_counter = 0
+
+    while digit_counter <1 or alpha_counter <1 or symbol_counter <1:
 
 
-def interest(balance):
-    print("\nAfter one year you would have %.2f\n\n" % (balance * 1.15))
-    sleep(3)
+        for letter in pin:
 
+
+            if letter.isdigit():
+                digit_counter = digit_counter + 1
+
+            elif letter.isalpha():
+                alpha_counter = alpha_counter + 1
+            elif letter == "@" or letter == "#" or letter == "!" or letter == "$":
+                 symbol_counter = symbol_counter + 1
+
+
+        if digit_counter > 0 and alpha_counter > 0 and symbol_counter > 0:
+                print("Valid password")
+                return True
+        else:
+            print("Invalid Pin")
+            return(False)
 
 def transaction(balance, transactions):
     print("Transactions:")
@@ -92,8 +154,7 @@ def transaction(balance, transactions):
             print('\t\t', x, sep="")
         elif x[0] == "+":
             print('\t\t', x, sep="")
-    print("\n\tBalance:", balance, "\n")
-    sleep(5)
-
+    print("\n\tBalance:€", balance, "\n")
+    time.sleep(5)
 
 start()
